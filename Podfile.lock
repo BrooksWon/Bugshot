@@ -1,0 +1,15 @@
+PODS:
+  - Masonry (1.0.2)
+  - OAStackView (1.0.1)
+
+DEPENDENCIES:
+  - Masonry (~> 1.0.2)
+  - OAStackView (~> 1.0.0)
+
+SPEC CHECKSUMS:
+  Masonry: 7c429b56da9d4ee0bbb3ed77a5ea710d6a5df39e
+  OAStackView: 95e7cb79cbea25c2342f496a44bdbe8bd4c8d510
+
+PODFILE CHECKSUM: bc7e6b3287f13d55c2c486740e5b208b7f5f86ff
+
+COCOAPODS: 1.4.0.rc.1
