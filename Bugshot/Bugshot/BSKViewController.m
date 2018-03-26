@@ -59,10 +59,10 @@
     [super viewDidLoad];
 
     self.levels = @{
+        @"P0" : @"P0",
         @"P1" : @"P1",
         @"P2" : @"P2",
         @"P3" : @"P3",
-        @"P0" : @"P0",
     };
 
     self.assignees = @{
@@ -100,7 +100,7 @@
     [self.view addSubview:self.stackView];
     [self.view addSubview:self.submitButton];
 
-    for (NSString *level in self.levels.allKeys) {
+    for (NSString *level in [self.levels.allKeys sortedArrayUsingSelector:@selector(compare:)]) {
         [self.levelActionSheet addButtonWithTitle:level];
     }
 
@@ -171,7 +171,7 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 2;
+    return 1;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -410,8 +410,8 @@
     if (!_submitButton) {
         _submitButton = [UIButton buttonWithType:UIButtonTypeSystem];
         [_submitButton setTitle:@"提 交" forState:UIControlStateNormal];
-        [_submitButton setBackgroundColor:[UIColor blueColor]];
-        [_submitButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [_submitButton setBackgroundColor:[UIColor whiteColor]];
+        [_submitButton setTitleColor:[UIColor redColor] forState:UIControlStateNormal];
         [_submitButton addTarget:self action:@selector(sendAction:) forControlEvents:UIControlEventTouchUpInside];
     }
 
