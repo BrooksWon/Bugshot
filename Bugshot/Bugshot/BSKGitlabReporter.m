@@ -32,7 +32,7 @@ static NSString const * kGitLabProjectId = @"87";// wby/app/Git
     }
 
     NSURL *gitlabUploadsUrl = [NSURL URLWithString:[NSString stringWithFormat:@"%@/api/v3/projects/%@/uploads", kGitLabBaseUrl, kGitLabProjectId]];
-    NSString *boundary = @"__RenRenChe_Boundary__";
+    NSString *boundary = @"__Bugshot_Boundary__";
     NSMutableData *body = [NSMutableData data];
     if (contentData) {
         [body appendData:[[NSString stringWithFormat:@"--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];

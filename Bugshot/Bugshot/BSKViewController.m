@@ -13,6 +13,7 @@
 #import "BSKIssue.h"
 #import <Masonry/Masonry.h>
 #import <OAStackView/OAStackView.h>
+#import "BSKShotImageViewController.h"
 
 
 @interface BSKViewController () <UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate>
@@ -41,7 +42,9 @@
 
 @end
 
-@implementation BSKViewController
+@implementation BSKViewController {
+    UIImage *_screenshotImage;
+}
 
 - (BOOL)shouldAutorotate {
     return NO;
@@ -55,8 +58,24 @@
     return [[UIApplication sharedApplication] statusBarOrientation];
 }
 
+- (void)NEW_screenshotImage:(NSNotification*)noti
+{
+    if (noti.object && [noti.object isKindOfClass:[UIImage class]]) {
+        _screenshotImage = noti.object;
+    }
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter]removeObserver:self];
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    [[NSNotificationCenter defaultCenter]addObserver:self
+                                            selector:@selector(NEW_screenshotImage:)
+                                                name:@"NEW_screenshotImage"
+                                              object:nil];
 
     self.levels = @{
         @"P0" : @"P0",
@@ -68,16 +87,18 @@
     self.assignees = @{
         @"Brooks" : @"27",
         @"SunXX"  : @"40",
-        @"FengYY" : @"50",
     };
 
     self.title = @"Bugshot";
-    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel
-                                                                                          target:self
-                                                                                          action:@selector(dismissAction:)];
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone
-                                                                                           target:self
-                                                                                           action:@selector(sendAction:)];
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"取消"
+                                     style:UIBarButtonItemStylePlain
+                                    target:self
+                                    action:@selector(dismissAction:)];
+    
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"提交"
+                                     style:UIBarButtonItemStyleDone
+                                    target:self
+                                    action:@selector(sendAction:)];
 
     self.view.backgroundColor = [UIColor whiteColor];
 
@@ -118,6 +139,9 @@
     [super viewDidAppear:animated];
 
     self.submitButton.enabled = YES;
+    self.submitButton.hidden = YES;
+
+    self.navigationItem.rightBarButtonItem.enabled = YES;
 }
 
 - (void)updateViewConstraints {
@@ -171,7 +195,7 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 1;
+    return 2;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -183,7 +207,7 @@
     } else if (indexPath.row == 1) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
         cell.textLabel.text = @"日志";
-        cell.accessoryType = UITableViewCellAccessoryNone;
+        cell.accessoryType = UITableViewCellAccessoryCheckmark;
     }
 
     return cell;
@@ -196,9 +220,25 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
     if (indexPath.row == 0) {
-        cell.accessoryType = cell.accessoryType == UITableViewCellAccessoryCheckmark ? UITableViewCellAccessoryNone : UITableViewCellAccessoryCheckmark;
+        
+        cell.accessoryType = cell.accessoryType == UITableViewCellAccessoryCheckmark ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryCheckmark;
+        
+        //圈选截图
+        {
+            if (!_screenshotImage) {
+                _screenshotImage = BugshotKit.sharedManager.annotatedImage ?: BugshotKit.sharedManager.snapshotImage;
+            }
+            
+            BSKShotImageViewController *editScreenshotImageVC = [[BSKShotImageViewController alloc] init];
+            
+            editScreenshotImageVC.shotImage = _screenshotImage;
+            
+            [self.navigationController pushViewController:editScreenshotImageVC animated:YES];
+        }
+        
+        
     } else if (indexPath.row == 1) {
-        cell.accessoryType = cell.accessoryType == UITableViewCellAccessoryCheckmark ? UITableViewCellAccessoryNone : UITableViewCellAccessoryCheckmark;
+        cell.accessoryType = cell.accessoryType == UITableViewCellAccessoryCheckmark ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryCheckmark;
     }
 
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
@@ -213,6 +253,7 @@
 }
 
 - (void)sendAction:(id)sender {
+    
     self.titleTextView.layer.borderColor = [UIColor grayColor].CGColor;
     if (self.titleTextView.text.length == 0) {
         self.titleTextView.layer.borderColor = [UIColor redColor].CGColor;
@@ -220,8 +261,13 @@
     }
 
     self.submitButton.enabled = NO;
+    self.navigationItem.rightBarButtonItem.enabled = NO;
+    
 
-    UIImage *screenshotImage = BugshotKit.sharedManager.annotatedImage ?: BugshotKit.sharedManager.snapshotImage;
+    if (!_screenshotImage) {
+        _screenshotImage = BugshotKit.sharedManager.annotatedImage ?: BugshotKit.sharedManager.snapshotImage;
+    }
+    
 
     NSString *appIdentifierString = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleIdentifier"];
     NSString *appVersionString = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"];
@@ -245,7 +291,7 @@
     self.issue.body = self.bodyTextView.text;
 
     NSString *levelTitle = [self.levelButton titleForState:UIControlStateNormal];
-    if (levelTitle) {
+    if (levelTitle && ![levelTitle isEqualToString:@"选择"]) {
         self.issue.labels = @[@"bug", self.levels[levelTitle]];
     } else {
         self.issue.labels = @[@"bug"];
@@ -253,17 +299,32 @@
 
     NSString *assigneeTitle = [self.assigneeButton titleForState:UIControlStateNormal];
     if (assigneeTitle) {
-        self.issue.assigneeId = self.assignees[assigneeTitle];
+        if ([assigneeTitle isEqualToString:@"选择"]) {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@""
+                                                            message:@"请选[择责任人]"
+                                                           delegate:nil
+                                                  cancelButtonTitle:@"OK"
+                                                  otherButtonTitles:nil];
+            [alert show];
+            self.navigationItem.rightBarButtonItem.enabled = YES;
+            return;
+        } else {
+            self.issue.assigneeId = self.assignees[assigneeTitle];
+        }
     }
 
     self.issue.userInfo = userInfo;
 
-    self.issue.screenshotImage = screenshotImage;
+    self.issue.screenshotImage = _screenshotImage;
 
     if (self.reporter) {
         [self.reporter submitIssue:self.issue withCompletion:^(NSError *error) {
             if (error) {
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提交失败" message:@"" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"提交失败"
+                                                                message:@""
+                                                               delegate:nil
+                                                      cancelButtonTitle:@"OK"
+                                                      otherButtonTitles:nil];
                 [alert show];
             } else {
                 [self dismissAction:nil];

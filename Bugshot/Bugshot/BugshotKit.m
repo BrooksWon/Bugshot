@@ -239,7 +239,7 @@ NSString *const BSKGitLabPrivateToken = @"Books.GitLabPrivateToken";
     BSKViewController *bugshotViewController = [[BSKViewController alloc] init];
     bugshotViewController.delegate = self;
     
-    bugshotViewController.issue.title = @"test name";
+    bugshotViewController.issue.title = @"No Title";
 
 //    if (visibleViewController.log_eventName.length > 0) {
 //        bugshotViewController.issue.title = [NSString stringWithFormat:@"【%@】", visibleViewController.log_eventName];
