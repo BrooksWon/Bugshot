@@ -11,7 +11,8 @@
 
 * 当前屏幕自动截图;
 * 自动收集当前设备信息、版本信息;
-* 利用GitLab API 提交 issues(包含:tittle、description、attachment、assignee、labels).
+* 利用GitLab API 提交 issues(包含:tittle、description、attachment、assignee、labels);
+* 支持截图圈选功能.
 
 
 TODO:
