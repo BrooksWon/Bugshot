@@ -51,6 +51,7 @@ NSString *const BSKGitLabPrivateToken = @"Books.GitLabPrivateToken";
 }
 
 + (void)enable {
+    [[NSUserDefaults standardUserDefaults] removeObjectForKey:BSKGitLabPrivateToken];
     if (BugshotKit.sharedManager.isDisabled) {
         return;
     }
@@ -175,6 +176,8 @@ NSString *const BSKGitLabPrivateToken = @"Books.GitLabPrivateToken";
         // 当第一次配置bugshot的时候，通过[[UIApplication sharedApplication] keyWindow]获取到的是悬浮按钮的window
         // 下次从新进入的时候，[[UIApplication sharedApplication] keyWindow]获取到的又是正确的window
         // 目前未找到原因，如果区分不同版本的弹窗方式，[[UIApplication sharedApplication] keyWindow]获取到的是正确的window
+        
+        // 支持手动输入 private token
             UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"GitLab" message:@"Enter the GitLab Private Token:" preferredStyle:UIAlertControllerStyleAlert];
             [alert addTextFieldWithConfigurationHandler:nil];
 
@@ -194,6 +197,34 @@ NSString *const BSKGitLabPrivateToken = @"Books.GitLabPrivateToken";
             [alert addAction:cancelAction];
 
             [self.window.visibleViewController presentViewController:alert animated:YES completion:nil];
+        
+        /**
+         支持 private token 选择
+         
+        UIAlertController *actionSheetController = [UIAlertController alertControllerWithTitle:@"测试人员" message:nil preferredStyle:UIAlertControllerStyleAlert];
+        
+        NSDictionary *QA = @{@"刘叶":@"szKDaHFA9gCc1jJP_nxg",
+                             @"刘叶":@"szKDaHFA9gCc1jJP_nxg",
+                             @"刘叶":@"szKDaHFA9gCc1jJP_nxg",
+                             @"刘叶":@"szKDaHFA9gCc1jJP_nxg",
+                             @"刘叶":@"szKDaHFA9gCc1jJP_nxg"};
+        
+        [QA enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull key, id  _Nonnull obj, BOOL * _Nonnull stop) {
+            UIAlertAction *action = [UIAlertAction actionWithTitle:key style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                [[NSUserDefaults standardUserDefaults] setObject:obj forKey:BSKGitLabPrivateToken];
+                [[NSUserDefaults standardUserDefaults] synchronize];
+                
+                
+                self.isVisible = NO;
+            }];
+            
+            [actionSheetController addAction:action];
+        }];
+        
+        if (actionSheetController.actions.count > 0) {
+            [self.window.visibleViewController presentViewController:actionSheetController animated:YES completion:nil];
+        }
+       */
 
         return;
     }
@@ -239,7 +270,7 @@ NSString *const BSKGitLabPrivateToken = @"Books.GitLabPrivateToken";
     BSKViewController *bugshotViewController = [[BSKViewController alloc] init];
     bugshotViewController.delegate = self;
     
-    bugshotViewController.issue.title = @"No Title";
+    bugshotViewController.issue.title = nil;
 
 //    if (visibleViewController.log_eventName.length > 0) {
 //        bugshotViewController.issue.title = [NSString stringWithFormat:@"【%@】", visibleViewController.log_eventName];
